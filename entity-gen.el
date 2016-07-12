@@ -10,7 +10,7 @@
 ;; (gen-entity "table-name")
 ;;
 ;; Interactive command:
-;; gen-entity-generate
+;; entity-gen-generate
 ;;
 
 (cl-defstruct column-info name data-type column-default)
@@ -32,6 +32,22 @@
     (pg:disconnect conn)
     (mapcar 'list-to-column-info columns)))
 
+(defun read-primary-key-columns (table-name)
+  (let* ((conn (apply 'pg:connect *db-config*))
+	 (columns (pg:result (pg:exec conn
+				      "SELECT "
+				      "column_name from "
+				      "information_schema.key_column_usage "
+				      "as k natural full join "
+				      "information_schema.table_constraints "
+				      "as tc WHERE "
+				      "constraint_type = 'PRIMARY KEY' "
+				      "and table_name = "
+				      "'" table-name "'")
+			     :tuples)))
+    (pg:disconnect conn)
+    (mapcar 'car columns)))
+
 (setq *data-map*
       (list (cons "integer" "Integer")
 	    (cons "text" "String")
@@ -48,18 +64,26 @@
 	pg-type
 	(cdr java-type-info))))
 
-(defun gen-attr (col)
+(defun gen-attr (col id-col)
   (let* ((pg-name (column-info-name col))
 	 (java-name (s-lower-camel-case pg-name)))
     (insert "\n")
+    (when (equal pg-name id-col)
+      (insert "    @Id\n"))
     (insert (format "    @Column(name=\"%s\")\n"
 		    pg-name))
     (insert (format "    private %s %s;\n"
 		    (gen-type col)
 		    java-name))))
 
+(defun find-id-column (keys)
+  (when (and (not (null (car keys)))
+	     (null (cdr keys)))
+    (car keys)))
+
 (defun gen-entity (table-name)
-  (let ((class-name (s-upper-camel-case table-name))
+  (let ((id-col (find-id-column (read-primary-key-columns table-name)))
+	(class-name (s-upper-camel-case table-name))
 	(columns (read-table-info table-name)))
     (switch-to-buffer-other-window "*codegen*")
     (erase-buffer)
@@ -67,11 +91,10 @@
     (insert (format "@Table(name=\"%s\")\n" table-name))
     (insert (format "class %s {\n" class-name))
     (dolist (col columns)
-      (gen-attr col))
+      (gen-attr col id-col))
     (insert "}\n")
     (other-window 1)))
 
-
-(defun gen-entity-generate ()
+(defun entity-gen-generate ()
   (interactive)
   (gen-entity (read-from-minibuffer "Enter table name: ")))
