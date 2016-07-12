@@ -1,5 +1,5 @@
 # entity-gen
-An Emacs Lisp script for generating simple JPA entity/class code
+An Emacs Lisp script for generating simple JPA entity/class code from a PostgreSQL table
 
 
 ## Configuration (in .emacs)
