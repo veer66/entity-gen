@@ -9,6 +9,9 @@
 ;; Basic usage:
 ;; (gen-entity "table-name")
 ;;
+;; Interactive command:
+;; gen-entity-generate
+;;
 
 (cl-defstruct column-info name data-type column-default)
 
@@ -38,7 +41,6 @@
 	    (cons "timestamp" "Timestamp")
 	    (cons "numeric" "Float")))
 		  
-
 (defun gen-type (col)  
   (let* ((pg-type (car (s-split " " (column-info-data-type col))))
 	 (java-type-info (assoc pg-type *data-map*)))
@@ -69,3 +71,7 @@
     (insert "}\n")
     (other-window 1)))
 
+
+(defun gen-entity-generate ()
+  (interactive)
+  (gen-entity (read-from-minibuffer "Enter table name: ")))

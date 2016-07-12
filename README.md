@@ -14,3 +14,7 @@ An Emacs Lisp script for generating simple JPA entity/class code from a PostgreS
 ````lisp
 (gen-entity "table-name")
 ````
+
+## Interactive command
+
+      M-x gen-entity-generate
