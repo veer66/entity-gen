@@ -4,8 +4,8 @@ An Emacs Lisp script for generating simple JPA entity/class code from a PostgreS
 
 ## Configuration (in .emacs)
 ````lisp
-(setq *db-config* (list "dbname-fakedb" "postgres-user"
-                         "postgres-password" "hostname-localhost"))
+(setq *db-config* '("dbname-fakedb" "postgres-user"
+                    "postgres-password" "hostname-localhost"))
 ````
 
 
@@ -13,6 +13,10 @@ An Emacs Lisp script for generating simple JPA entity/class code from a PostgreS
 
 ````lisp
 (gen-entity "table-name")
+````
+
+````lisp
+(gen-entity "table-name" "schema-name")
 ````
 
 ## Interactive command
